@@ -2,7 +2,6 @@ use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fs;
 
-
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct HistoricGame {
     pub date: String,
@@ -33,7 +32,6 @@ pub async fn start_historic() -> String {
     let n = nums.choose(&mut rng).expect("failed to pick a number");
     let selected_game = &games[*n as usize];
 
-    // Serialize the selected game to a JSON string
     let json = serde_json::to_string(selected_game).expect("Failed to serialize game");
 
     json
