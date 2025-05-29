@@ -1,0 +1,12 @@
+# Rust
+/back/target/
+
+# Node
+/front/node_modules/
+/front/dist/
+/front/.next/
+/front/.vite/
+
+# OS & IDE files
+.DS_Store
+*.log
