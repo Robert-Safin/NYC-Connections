@@ -1,3 +1,4 @@
+use axum::{http::StatusCode, response::IntoResponse, Json};
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -17,22 +18,21 @@ pub struct Answer {
     pub answer_description: String,
     pub words: Vec<String>,
 }
-
-pub async fn start_historic() -> String {
+pub async fn start_historic() -> impl IntoResponse {
     let contents =
-        fs::read_to_string("dataset.json").expect("Should have been able to read the file");
+        fs::read_to_string("dataset.json").map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    let games: Vec<HistoricGame> = serde_json::from_str(&contents).expect("Failed to parse JSON");
+    let games: Vec<HistoricGame> =
+        serde_json::from_str(&contents).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    if games.is_empty() {
+        return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    }
 
     let mut rng = rand::rng();
+    let game = games
+        .choose(&mut rng)
+        .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    let mut nums: Vec<i32> = (0..games.len() as i32).collect();
-    nums.shuffle(&mut rng);
-
-    let n = nums.choose(&mut rng).expect("failed to pick a number");
-    let selected_game = &games[*n as usize];
-
-    let json = serde_json::to_string(selected_game).expect("Failed to serialize game");
-
-    json
+    Ok(Json(game.clone()))
 }
