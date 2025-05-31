@@ -26,6 +26,7 @@ pub struct AnswerGroup {
 }
 
 pub async fn start_llm() -> Result<Json<HistoricGame>, StatusCode> {
+  println!("hit");
     let mut ollama = Ollama::default();
     let model = "llama3.2:latest".to_string();
     let prompt = "Generate words for a game of connections".to_string();
