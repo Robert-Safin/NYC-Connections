@@ -1,5 +1,5 @@
 mod server;
-mod word_gen;
+mod utils;
 
 #[tokio::main]
 async fn main() {

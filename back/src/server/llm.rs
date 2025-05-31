@@ -18,6 +18,8 @@ pub struct Answer {
 }
 use axum::{http::StatusCode, Json};
 
+use crate::utils::get_args;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AnswerGroup {
     #[serde(rename = "answerDescription")]
@@ -26,9 +28,13 @@ pub struct AnswerGroup {
 }
 
 pub async fn start_llm() -> Result<Json<HistoricGame>, StatusCode> {
-  println!("hit");
+    let model_name = get_args();
+    if model_name.is_none() {
+        return Err(StatusCode::BAD_REQUEST);
+    };
     let mut ollama = Ollama::default();
-    let model = "llama3.2:latest".to_string();
+    // "llama3.2:latest"
+    let model = model_name.unwrap();
     let prompt = "Generate words for a game of connections".to_string();
 
     let mut history = vec![ChatMessage {
@@ -76,17 +82,24 @@ pub async fn start_llm() -> Result<Json<HistoricGame>, StatusCode> {
             ),
         )
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|_| StatusCode::BAD_REQUEST)?;
 
     let raw = response.message.content;
 
-    // Try to extract JSON substring
     let json_start = raw.find('{').ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
     let json_end = raw.rfind('}').ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
     let json_str = &raw[json_start..=json_end];
 
     let parsed: HistoricGame =
         serde_json::from_str(json_str).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    if parsed.words.len() != 16 {
+        return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    }
+
+    if parsed.answers.len() != 4 {
+        return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    }
 
     Ok(Json(parsed))
 }

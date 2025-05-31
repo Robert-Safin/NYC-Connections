@@ -2,7 +2,7 @@ use super::{historic, llm};
 use axum::{
     http::{
         header::{AUTHORIZATION, CONTENT_TYPE},
-        HeaderValue
+        HeaderValue,
     },
     routing::get,
     Router,
